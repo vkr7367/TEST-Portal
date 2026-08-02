@@ -107,8 +107,18 @@
 
         .test-title {
             font-size: 1.2rem;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: var(--text-main);
+        }
+
+        .test-date {
+            color: #38bdf8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .test-meta {
@@ -184,6 +194,10 @@
                 <input type="text" id="testTitle" placeholder="e.g., Modern History Mock Test 1">
             </div>
             <div class="form-group">
+                <label>Test Date</label>
+                <input type="date" id="testDate">
+            </div>
+            <div class="form-group">
                 <label>Description / Details</label>
                 <textarea id="testDesc" rows="3" placeholder="Test syllabus or notes..."></textarea>
             </div>
@@ -199,7 +213,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Your new Firebase configuration
         const firebaseConfig = {
             apiKey: "AizSyDJRPVw03gH0XULysTKxP_r1POFRDrVDBK",
             authDomain: "testportaldb-27776.firebaseapp.com",
@@ -210,7 +223,6 @@
             measurementId: "G-SZFE10KZPG"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -224,6 +236,7 @@
 
         window.saveNewTest = async function() {
             const title = document.getElementById('testTitle').value.trim();
+            const date = document.getElementById('testDate').value;
             const desc = document.getElementById('testDesc').value.trim();
 
             if (!title) {
@@ -234,16 +247,18 @@
             try {
                 await addDoc(collection(db, "tests"), {
                     title: title,
+                    testDate: date || 'No Date',
                     description: desc,
                     createdAt: serverTimestamp()
                 });
                 closeAddModal();
                 document.getElementById('testTitle').value = '';
+                document.getElementById('testDate').value = '';
                 document.getElementById('testDesc').value = '';
                 loadTests();
             } catch (e) {
                 console.error("Error adding document: ", e);
-                alert("Error saving test. Make sure Firestore Database is created in your Firebase console.");
+                alert("Error saving test.");
             }
         }
 
@@ -266,6 +281,7 @@
                     card.className = 'test-card';
                     card.innerHTML = `
                         <div class="test-title">${escapeHtml(test.title)}</div>
+                        <div class="test-date"><i class="fa-regular fa-calendar"></i> ${escapeHtml(test.testDate)}</div>
                         <div class="test-meta">${escapeHtml(test.description || 'No description provided')}</div>
                     `;
                     grid.appendChild(card);
@@ -281,7 +297,6 @@
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
-        // Load tests on page startup
         window.onload = loadTests;
     </script>
 </body>
