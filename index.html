@@ -171,6 +171,36 @@
             gap: 10px;
         }
 
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--card-bg);
+            border: 1px solid #475569;
+            color: var(--text-muted);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-tab:hover {
+            background: #334155;
+            color: var(--text-main);
+        }
+
+        .filter-tab.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -239,6 +269,18 @@
             align-self: flex-start;
             margin-bottom: 0.75rem;
             color: #fff;
+        }
+
+        .folder-badge {
+            background: rgba(6, 182, 212, 0.15);
+            color: #06b6d4;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            display: inline-block;
+            margin-bottom: 0.5rem;
         }
 
         .btn {
@@ -319,7 +361,7 @@
 
         .modal-box textarea {
             width: 100%;
-            height: 200px;
+            height: 180px;
             background: #0f172a;
             border: 1px solid #475569;
             border-radius: 8px;
@@ -331,7 +373,7 @@
             margin-bottom: 1rem;
         }
 
-        .modal-box input {
+        .modal-box input, .modal-box select {
             width: 100%;
             padding: 0.8rem;
             background: #0f172a;
@@ -516,10 +558,19 @@
                     <button class="btn admin-only" id="add-series-btn" style="display: none;" onclick="addNewTab()"><i class="fa-solid fa-plus"></i> Add New Series</button>
                 </div>
             </div>
+            
+            <!-- Folder Filter Tabs for Main Series (Visible to everyone for easy browsing) -->
+            <div class="filter-tabs" id="main-filter-tabs">
+                <div class="filter-tab active" onclick="filterMainSeries('ALL')">All Folders</div>
+                <div class="filter-tab" onclick="filterMainSeries('BPSC')">BPSC Prep</div>
+                <div class="filter-tab" onclick="filterMainSeries('GENERAL')">General GK</div>
+            </div>
+
             <div class="grid-container" id="main-tiles-grid">
                 <!-- 3SC Test Series Tile -->
-                <div class="tile-card" onclick="openSubTabs('3SC', '3SC Test Series')">
+                <div class="tile-card" data-folder="BPSC" onclick="openSubTabs('3SC', '3SC Test Series')">
                     <div>
+                        <span class="folder-badge"><i class="fa-solid fa-folder"></i> BPSC</span>
                         <span class="badge" id="badge-3SC">0 Dates</span>
                         <i class="fa-solid fa-clipboard-check card-icon"></i>
                         <h3>3SC Test series</h3>
@@ -528,8 +579,9 @@
                 </div>
 
                 <!-- Ghatna Chakra Test Tile -->
-                <div class="tile-card" onclick="openSubTabs('GHATNA', 'Ghatna Chakra Test Series')">
+                <div class="tile-card" data-folder="BPSC" onclick="openSubTabs('GHATNA', 'Ghatna Chakra Test Series')">
                     <div>
+                        <span class="folder-badge"><i class="fa-solid fa-folder"></i> BPSC</span>
                         <span class="badge" id="badge-GHATNA">0 Dates</span>
                         <i class="fa-solid fa-book-bookmark card-icon"></i>
                         <h3 id="title-ghatna">Ghatna chakra test</h3>
@@ -539,8 +591,9 @@
                 </div>
 
                 <!-- Lucent Test Tile -->
-                <div class="tile-card" onclick="openSubTabs('LUCENT', 'Lucent Test Series')">
+                <div class="tile-card" data-folder="GENERAL" onclick="openSubTabs('LUCENT', 'Lucent Test Series')">
                     <div>
+                        <span class="folder-badge"><i class="fa-solid fa-folder"></i> General</span>
                         <span class="badge" id="badge-LUCENT">0 Dates</span>
                         <i class="fa-solid fa-brain card-icon"></i>
                         <h3 id="title-lucent">Lucent test</h3>
@@ -567,15 +620,27 @@
             </div>
         </div>
 
-        <!-- PASTE CODE MODAL -->
+        <!-- PASTE CODE MODAL WITH ADMIN FOLDER TAG SELECTOR -->
         <div id="code-modal" class="modal-overlay">
-            <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-box">
                 <h3><i class="fa-solid fa-code"></i> Paste Test Questions JSON Code</h3>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">Enter Test Date and paste the JSON array. Automatically saves to cloud!</p>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">Enter Test Date, Folder category tag, and paste JSON array.</p>
+                
                 <label>Test Date</label>
                 <input type="text" id="modal-date-input" placeholder="e.g. 31/07/2026">
+                
+                <label>Folder / Subject Tag Type</label>
+                <select id="modal-tag-input">
+                    <option value="Polity">Polity</option>
+                    <option value="History">History</option>
+                    <option value="Geography">Geography</option>
+                    <option value="Current Affairs">Current Affairs</option>
+                    <option value="General Science">General Science</option>
+                </select>
+
                 <label>JSON Code Array</label>
                 <textarea id="modal-code-input" placeholder='Paste JSON array here... e.g. [{"q":"1. ...", "opts":["(A)...","(B)..."], "ans":0, "exp":"..."}]'></textarea>
+                
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="btn btn-secondary" onclick="closeCodeModal()">Cancel</button>
                     <button class="btn" onclick="saveCodeTest()">Save Test to Cloud</button>
@@ -630,7 +695,7 @@
         const ADMIN_ID = "vkr7367@gmail.com";
         const ADMIN_PASS = "Vishal@1234";
 
-        let userRole = 'GUEST';
+        let userRole = sessionStorage.getItem('bpsc_user_role') || 'GUEST';
 
         let activeSeriesKey = '3SC'; 
         let activeSeriesName = '3SC Test Series';
@@ -639,6 +704,29 @@
             'GHATNA': {},
             'LUCENT': {}
         };
+
+        async function initPortal() {
+            if (userRole !== 'GUEST') {
+                document.getElementById('login-landing-view').style.display = 'none';
+                document.getElementById('loading-screen-view').style.display = 'flex';
+                await loadPortalDataFromCloud();
+                document.getElementById('loading-screen-view').style.display = 'none';
+                document.getElementById('main-tabs-view').style.display = 'block';
+                document.getElementById('user-role-badge').style.display = 'inline-flex';
+                document.getElementById('logout-btn').style.display = 'inline-flex';
+
+                if (userRole === 'ADMIN') {
+                    document.getElementById('user-role-badge').innerText = 'Role: Admin';
+                    document.getElementById('user-role-badge').style.background = 'rgba(16, 185, 129, 0.2)';
+                    document.getElementById('user-role-badge').style.color = '#10b981';
+                } else {
+                    document.getElementById('user-role-badge').innerText = 'Role: Public User';
+                    document.getElementById('user-role-badge').style.background = 'rgba(6, 182, 212, 0.2)';
+                    document.getElementById('user-role-badge').style.color = '#06b6d4';
+                }
+                applyRolePermissions();
+            }
+        }
 
         async function loadPortalDataFromCloud() {
             try {
@@ -679,6 +767,22 @@
             }
         }
 
+        // --- FOLDER / TAB FILTERING ---
+        window.filterMainSeries = function(folderName) {
+            const tabs = document.querySelectorAll('#main-filter-tabs .filter-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const cards = document.querySelectorAll('#main-tiles-grid .tile-card');
+            cards.forEach(card => {
+                if (folderName === 'ALL' || card.getAttribute('data-folder') === folderName) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
         // --- LOGIN & LOADING SEQUENCE ---
         window.verifyLandingLogin = async function() {
             const inputId = document.getElementById('landing-id-input').value.trim();
@@ -686,14 +790,10 @@
 
             if (inputId === ADMIN_ID && inputPass === ADMIN_PASS) {
                 userRole = 'ADMIN';
-                document.getElementById('user-role-badge').innerText = 'Role: Admin';
-                document.getElementById('user-role-badge').style.background = 'rgba(16, 185, 129, 0.2)';
-                document.getElementById('user-role-badge').style.color = '#10b981';
+                sessionStorage.setItem('bpsc_user_role', 'ADMIN');
             } else if (inputId === PUBLIC_ID && inputPass === PUBLIC_PASS) {
                 userRole = 'PUBLIC';
-                document.getElementById('user-role-badge').innerText = 'Role: Public User';
-                document.getElementById('user-role-badge').style.background = 'rgba(6, 182, 212, 0.2)';
-                document.getElementById('user-role-badge').style.color = '#06b6d4';
+                sessionStorage.setItem('bpsc_user_role', 'PUBLIC');
             } else {
                 alert("Invalid Login ID or Password!");
                 return;
@@ -702,13 +802,11 @@
             document.getElementById('landing-id-input').value = '';
             document.getElementById('landing-pass-input').value = '';
 
-            // Hide login, show loading screen while fetching cloud data
             document.getElementById('login-landing-view').style.display = 'none';
             document.getElementById('loading-screen-view').style.display = 'flex';
 
             await loadPortalDataFromCloud();
 
-            // Hide loading screen, show main dashboard
             document.getElementById('loading-screen-view').style.display = 'none';
             document.getElementById('main-tabs-view').style.display = 'block';
             document.getElementById('user-role-badge').style.display = 'inline-flex';
@@ -719,6 +817,7 @@
 
         window.logoutPortal = function() {
             userRole = 'GUEST';
+            sessionStorage.removeItem('bpsc_user_role');
             document.getElementById('user-role-badge').style.display = 'none';
             document.getElementById('logout-btn').style.display = 'none';
 
@@ -835,6 +934,7 @@
 
                 newCard.innerHTML = `
                     <div>
+                        <span class="folder-badge"><i class="fa-solid fa-tag"></i> Active Test</span>
                         <span class="badge" style="background: var(--secondary-gradient);">${count} Questions</span>
                         <i class="fa-solid fa-file-pen card-icon"></i>
                         <h3>DATE: ${dateStr}</h3>
@@ -873,9 +973,11 @@
                 const cardId = 'title-' + seriesKey;
                 const newCard = document.createElement('div');
                 newCard.className = 'tile-card';
+                newCard.setAttribute('data-folder', 'BPSC');
                 newCard.onclick = () => openSubTabs(seriesKey, title.trim());
                 newCard.innerHTML = `
                     <div>
+                        <span class="folder-badge"><i class="fa-solid fa-folder"></i> BPSC</span>
                         <span class="badge" id="badge-${seriesKey}">0 Dates</span>
                         <i class="fa-solid fa-folder-plus card-icon"></i>
                         <h3 id="${cardId}">${title.trim()}</h3>
@@ -915,6 +1017,7 @@
         window.saveCodeTest = function() {
             if (userRole !== 'ADMIN') return;
             const dateStr = document.getElementById('modal-date-input').value;
+            const tagType = document.getElementById('modal-tag-input').value;
             const codeRaw = document.getElementById('modal-code-input').value;
 
             if (!dateStr || dateStr.trim() === "") {
@@ -926,7 +1029,7 @@
                 return;
             }
 
-            const key = dateStr.trim().replace(/\//g, '_');
+            const key = `${dateStr.trim().replace(/\//g, '_')}_${tagType}`;
 
             try {
                 const parsedArr = JSON.parse(codeRaw.trim());
@@ -939,7 +1042,7 @@
                 closeCodeModal();
                 document.getElementById('modal-date-input').value = '';
                 document.getElementById('modal-code-input').value = '';
-                alert(`Successfully saved test with ${parsedArr.length} questions to cloud for ${dateStr}!`);
+                alert(`Successfully saved ${tagType} test with ${parsedArr.length} questions to cloud for ${dateStr}!`);
             } catch (e) {
                 alert("Invalid JSON code format.");
             }
@@ -1131,6 +1234,8 @@
             document.getElementById('quiz-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'block';
         }
+
+        window.onload = initPortal;
     </script>
 </body>
 </html>
