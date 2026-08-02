@@ -47,6 +47,8 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         header h1 {
@@ -182,6 +184,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.9rem;
         }
 
         .btn:hover {
@@ -381,9 +384,11 @@
 
     <header>
         <h1><i class="fa-solid fa-vial-circle-check"></i> TEST</h1>
-        <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
             <div id="sync-indicator" class="sync-status"><i class="fa-solid fa-cloud"></i> Cloud Synced</div>
-            <div style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">72th BPSC CCE Portal</div>
+            <button class="btn btn-secondary" onclick="backupData()"><i class="fa-solid fa-download"></i> Backup Data</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('restore-file-input').click()"><i class="fa-solid fa-upload"></i> Restore Data</button>
+            <input type="file" id="restore-file-input" style="display: none;" accept=".json" onchange="restoreData(event)">
         </div>
     </header>
 
@@ -514,18 +519,26 @@
         };
 
         async function initPortal() {
+            document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
             await loadPortalDataFromCloud();
+            document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-cloud"></i> Cloud Synced';
         }
 
         async function loadPortalDataFromCloud() {
             try {
                 const querySnapshot = await getDocs(collection(db, "bpsc_series"));
+                let loadedAny = false;
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
                     if (data && data.seriesKey && data.tests) {
                         testDatabase[data.seriesKey] = data.tests;
+                        loadedAny = true;
                     }
                 });
+                if (!loadedAny) {
+                    const stored = localStorage.getItem('bpsc_multi_series_db');
+                    if (stored) { testDatabase = JSON.parse(stored); }
+                }
             } catch(e) {
                 console.error("Error loading from cloud, fallback to local storage", e);
                 const stored = localStorage.getItem('bpsc_multi_series_db');
@@ -534,6 +547,9 @@
                 }
             }
             updateBadges();
+            if (document.getElementById('sub-tabs-view').style.display === 'block') {
+                renderSubTabCards();
+            }
         }
 
         async function savePortalData(seriesKey) {
@@ -554,6 +570,52 @@
 
             if (document.getElementById('sub-tabs-view').style.display === 'block') {
                 renderSubTabCards();
+            }
+        }
+
+        // --- BACKUP & RESTORE FUNCTIONS ---
+        window.backupData = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(testDatabase, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "bpsc_test_portal_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        window.restoreData = async function(event) {
+            const fileReader = new FileReader();
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0], "UTF-8");
+                fileReader.onload = async function(e) {
+                    try {
+                        const parsedData = JSON.parse(e.target.result);
+                        if (parsedData && typeof parsedData === 'object') {
+                            testDatabase = parsedData;
+                            localStorage.setItem('bpsc_multi_series_db', JSON.stringify(testDatabase));
+                            
+                            // Upload all restored series to Firebase cloud
+                            for (let sKey of Object.keys(testDatabase)) {
+                                await setDoc(doc(db, "bpsc_series", sKey), {
+                                    seriesKey: sKey,
+                                    tests: testDatabase[sKey],
+                                    updatedAt: serverTimestamp()
+                                });
+                            }
+
+                            updateBadges();
+                            if (document.getElementById('sub-tabs-view').style.display === 'block') {
+                                renderSubTabCards();
+                            }
+                            alert("Backup restored and synced to cloud successfully!");
+                        } else {
+                            alert("Invalid backup file structure.");
+                        }
+                    } catch (error) {
+                        alert("Error reading backup file. Make sure it is a valid JSON file.");
+                    }
+                }
             }
         }
 
