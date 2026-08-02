@@ -16,6 +16,7 @@
             --accent-gradient: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
             --success-color: #10b981;
             --error-color: #ef4444;
+            --warning-color: #f59e0b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -78,7 +79,7 @@
         .container {
             max-width: 1200px;
             margin: 2rem auto;
-            padding: 0 1.5rem;
+            padding: 0 1.5rem 6rem 1.5rem; /* extra bottom padding for floating bar */
             width: 100%;
             flex-grow: 1;
         }
@@ -357,6 +358,7 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.08);
             display: none;
+            position: relative;
         }
 
         .timer-box {
@@ -369,6 +371,36 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        /* Floating Sticky Footer Bar during Test */
+        .sticky-quiz-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 0.8rem 2rem;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 500;
+        }
+
+        .sticky-timer {
+            background: #1e293b;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            color: #fb923c;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .question-card {
@@ -425,6 +457,12 @@
             background: rgba(239, 68, 68, 0.25) !important;
             border-color: var(--error-color) !important;
             color: #fca5a5 !important;
+        }
+
+        .option-btn.unattempted-correct {
+            background: rgba(245, 158, 11, 0.25) !important;
+            border-color: var(--warning-color) !important;
+            color: #fcd34d !important;
         }
 
         .explanation {
@@ -586,7 +624,6 @@
         <div id="quiz-view" class="quiz-container">
             <div class="section-header">
                 <h2 id="quiz-heading">Test Portal</h2>
-                <div class="timer-box"><i class="fa-regular fa-clock"></i> <span id="timer-display">90:00</span></div>
                 <button class="btn btn-secondary" onclick="exitQuiz()"><i class="fa-solid fa-xmark"></i> Exit Test</button>
             </div>
 
@@ -599,10 +636,15 @@
             <!-- Questions Form -->
             <form id="quiz-form">
                 <div id="questions-wrapper"></div>
-                <button type="button" class="btn" style="width: 100%; justify-content: center; padding: 1rem; font-size: 1.1rem; margin-top: 1rem;" onclick="evaluateQuiz()"><i class="fa-solid fa-paper-plane"></i> Submit Test & View Solutions</button>
             </form>
         </div>
 
+    </div>
+
+    <!-- STICKY FLOATING FOOTER BAR FOR TIMER & SUBMIT DURING EXAM -->
+    <div id="sticky-quiz-footer" class="sticky-quiz-footer">
+        <div class="sticky-timer"><i class="fa-regular fa-clock"></i> <span id="sticky-timer-display">90:00</span></div>
+        <button type="button" class="btn" style="padding: 0.75rem 1.8rem; font-size: 1.05rem;" onclick="evaluateQuiz()"><i class="fa-solid fa-paper-plane"></i> Submit Test</button>
     </div>
 
     <!-- Firebase SDKs & App Logic -->
@@ -677,6 +719,10 @@
             if (activeTestKey && activeSeries && userRole !== 'GUEST') {
                 await loadPortalDataFromCloud();
                 activeSeriesKey = activeSeries;
+                const savedAnswers = sessionStorage.getItem('saved_user_answers');
+                if (savedAnswers) {
+                    try { userAnswers = JSON.parse(savedAnswers); } catch(e) {}
+                }
                 loadQuiz(activeTestKey, true);
             }
         }
@@ -758,12 +804,14 @@
             sessionStorage.removeItem('active_test_key');
             sessionStorage.removeItem('active_series_key');
             sessionStorage.removeItem('exam_time_left');
+            sessionStorage.removeItem('saved_user_answers');
             document.getElementById('user-role-badge').style.display = 'none';
             document.getElementById('logout-btn').style.display = 'none';
 
             document.getElementById('main-tabs-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'none';
             document.getElementById('quiz-view').style.display = 'none';
+            document.getElementById('sticky-quiz-footer').style.display = 'none';
             document.getElementById('loading-screen-view').style.display = 'none';
             document.getElementById('login-landing-view').style.display = 'flex';
 
@@ -888,6 +936,7 @@
             document.getElementById('main-tabs-view').style.display = 'block';
             document.getElementById('sub-tabs-view').style.display = 'none';
             document.getElementById('quiz-view').style.display = 'none';
+            document.getElementById('sticky-quiz-footer').style.display = 'none';
             updateBadges();
         }
 
@@ -980,7 +1029,7 @@
             }
         }
 
-        // Quiz Engine Functions with Persistent Resume
+        // Quiz Engine Functions with Persistent Answers & Timer Resume
         window.loadQuiz = function(tileKey, isResume = false) {
             activeTileKey = tileKey;
             const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][tileKey]) || [];
@@ -994,6 +1043,7 @@
                 totalExamSeconds = 90 * 60;
                 sessionStorage.setItem('active_test_key', tileKey);
                 sessionStorage.setItem('active_series_key', activeSeriesKey);
+                sessionStorage.setItem('saved_user_answers', JSON.stringify(userAnswers));
             } else {
                 const savedTime = sessionStorage.getItem('exam_time_left');
                 if (savedTime) totalExamSeconds = parseInt(savedTime);
@@ -1002,6 +1052,7 @@
             document.getElementById('main-tabs-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'none';
             document.getElementById('quiz-view').style.display = 'block';
+            document.getElementById('sticky-quiz-footer').style.display = 'flex';
             document.getElementById('score-panel').style.display = 'none';
             document.getElementById('quiz-heading').innerText = `${activeSeriesName} - ${tileKey}`;
 
@@ -1010,6 +1061,7 @@
 
             if (questions.length === 0) {
                 wrapper.innerHTML = '<p style="color: var(--text-muted); padding: 1rem;">No questions installed for this tile yet.</p>';
+                document.getElementById('sticky-quiz-footer').style.display = 'none';
                 return;
             }
 
@@ -1053,6 +1105,7 @@
         window.selectOption = function(qIdx, oIdx) {
             trackQuestionTime(qIdx);
             userAnswers[qIdx] = oIdx;
+            sessionStorage.setItem('saved_user_answers', JSON.stringify(userAnswers));
             const parent = document.getElementById(`opt-${qIdx}-${oIdx}`).parentElement;
             const buttons = parent.getElementsByClassName('option-btn');
             for (let btn of buttons) {
@@ -1066,7 +1119,11 @@
             sessionStorage.removeItem('active_test_key');
             sessionStorage.removeItem('active_series_key');
             sessionStorage.removeItem('exam_time_left');
+            sessionStorage.removeItem('saved_user_answers');
             
+            // Hide sticky footer after submitting
+            document.getElementById('sticky-quiz-footer').style.display = 'none';
+
             const now = Date.now();
             const finalElapsed = Math.round((now - currentQuestionStart) / 1000);
             questionTimeSpent[activeQuestionIndex] = (questionTimeSpent[activeQuestionIndex] || 0) + finalElapsed;
@@ -1075,6 +1132,7 @@
             let score = 0;
             let correctCount = 0;
             let wrongCount = 0;
+            let unattemptedCount = 0;
 
             questions.forEach((qObj, qIdx) => {
                 const selected = userAnswers[qIdx];
@@ -1088,30 +1146,32 @@
                 if (timeVal) timeVal.innerText = timeSecs < 60 ? `${timeSecs} seconds` : `${Math.floor(timeSecs / 60)}m ${timeSecs % 60}s`;
                 if (timeBadge) timeBadge.style.display = 'inline-block';
 
-                qObj.opts.forEach((_, oIdx) => {
-                    const btn = document.getElementById(`opt-${qIdx}-${oIdx}`);
-                    if (btn) {
-                        btn.disabled = true;
-                        if (oIdx === qObj.ans) {
-                            btn.classList.add('correct');
-                        }
-                    }
-                });
-
-                if (selected !== undefined) {
+                if (selected === undefined) {
+                    unattemptedCount++;
+                    const unattemptedBtn = document.getElementById(`opt-${qIdx}-${qObj.ans}`);
+                    if (unattemptedBtn) unattemptedBtn.classList.add('unattempted-correct');
+                } else {
                     if (selected === qObj.ans) {
                         score += 1.0;
                         correctCount++;
+                        const btn = document.getElementById(`opt-${qIdx}-${selected}`);
+                        if (btn) btn.classList.add('correct');
                     } else {
                         score -= (1/3);
                         wrongCount++;
                         const selBtn = document.getElementById(`opt-${qIdx}-${selected}`);
                         if (selBtn) selBtn.classList.add('incorrect');
+                        const corrBtn = document.getElementById(`opt-${qIdx}-${qObj.ans}`);
+                        if (corrBtn) corrBtn.classList.add('correct');
                     }
                 }
+
+                qObj.opts.forEach((_, oIdx) => {
+                    const btn = document.getElementById(`opt-${qIdx}-${oIdx}`);
+                    if (btn) btn.disabled = true;
+                });
             });
 
-            const unattemptedCount = questions.length - (correctCount + wrongCount);
             const scorePanel = document.getElementById('score-panel');
             scorePanel.style.display = 'block';
             document.getElementById('score-summary').innerHTML = `
@@ -1119,7 +1179,7 @@
                 <div style="margin-top: 0.8rem; font-size: 1rem; line-height: 1.8;">
                     <span style="color: #10b981;"><i class="fa-solid fa-circle-check"></i> Correct: ${correctCount}</span> | 
                     <span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> Wrong: ${wrongCount}</span> | 
-                    <span style="color: #94a3b8;"><i class="fa-solid fa-circle-minus"></i> Unattempted: ${unattemptedCount}</span>
+                    <span style="color: #f59e0b;"><i class="fa-solid fa-circle-minus"></i> Unattempted: ${unattemptedCount}</span>
                 </div>
             `;
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1127,7 +1187,7 @@
 
         function startTimer(seconds) {
             let timeRemaining = seconds;
-            const display = document.getElementById('timer-display');
+            const display = document.getElementById('sticky-timer-display');
 
             timerInterval = setInterval(() => {
                 const mins = Math.floor(timeRemaining / 60);
@@ -1148,7 +1208,9 @@
             sessionStorage.removeItem('active_test_key');
             sessionStorage.removeItem('active_series_key');
             sessionStorage.removeItem('exam_time_left');
+            sessionStorage.removeItem('saved_user_answers');
             document.getElementById('quiz-view').style.display = 'none';
+            document.getElementById('sticky-quiz-footer').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'block';
         }
 
