@@ -416,15 +416,15 @@
         }
 
         .option-btn.correct {
-            background: rgba(16, 185, 129, 0.2) !important;
+            background: rgba(16, 185, 129, 0.25) !important;
             border-color: var(--success-color) !important;
-            color: #6ee7b7;
+            color: #6ee7b7 !important;
         }
 
         .option-btn.incorrect {
-            background: rgba(239, 68, 68, 0.2) !important;
+            background: rgba(239, 68, 68, 0.25) !important;
             border-color: var(--error-color) !important;
-            color: #fca5a5;
+            color: #fca5a5 !important;
         }
 
         .explanation {
@@ -508,32 +508,32 @@
         <!-- LEVEL 1: MAIN TABS VIEW -->
         <div id="main-tabs-view" style="display: none;">
             <div class="section-header">
-                <h2><i class="fa-solid fa-border-all"></i> Main Test Series</h2>
+                <h2><i class="fa-solid fa-border-all"></i> Main Test Series Folders</h2>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button class="btn btn-secondary admin-only" style="display: none;" onclick="backupData()"><i class="fa-solid fa-download"></i> Backup</button>
                     <button class="btn btn-secondary admin-only" style="display: none;" onclick="document.getElementById('restore-file-input').click()"><i class="fa-solid fa-upload"></i> Restore</button>
                     <input type="file" id="restore-file-input" style="display: none;" accept=".json" onchange="restoreData(event)">
-                    <button class="btn admin-only" id="add-series-btn" style="display: none;" onclick="addNewTab()"><i class="fa-solid fa-plus"></i> Add New Series</button>
+                    <button class="btn admin-only" id="add-series-btn" style="display: none;" onclick="addNewTab()"><i class="fa-solid fa-plus"></i> Add Folder</button>
                 </div>
             </div>
             <div class="grid-container" id="main-tiles-grid">
                 <!-- 3SC Test Series Tile -->
                 <div class="tile-card" onclick="openSubTabs('3SC', '3SC Test Series')">
                     <div>
-                        <span class="badge" id="badge-3SC">0 Tiles</span>
+                        <span class="badge" id="badge-3SC">0 Sections</span>
                         <i class="fa-solid fa-clipboard-check card-icon"></i>
                         <h3>3SC Test series</h3>
-                        <p>Daily target tests organized efficiently with answers, timer & auto-recovery.</p>
+                        <p>Daily target tests organized efficiently with auto-resume support.</p>
                     </div>
                 </div>
 
                 <!-- Ghatna Chakra Test Tile -->
                 <div class="tile-card" onclick="openSubTabs('GHATNA', 'Ghatna Chakra Test Series')">
                     <div>
-                        <span class="badge" id="badge-GHATNA">0 Tiles</span>
+                        <span class="badge" id="badge-GHATNA">0 Sections</span>
                         <i class="fa-solid fa-book-bookmark card-icon"></i>
                         <h3 id="title-ghatna">Ghatna chakra test</h3>
-                        <p>Subject-wise question banks like History, Geography, Polity etc.</p>
+                        <p>Subject sections like History, Geography, Polity etc.</p>
                     </div>
                     <button class="btn btn-secondary admin-only" style="margin-top: 1rem; width: fit-content; display: none;" onclick="event.stopPropagation(); renameTab('title-ghatna')"><i class="fa-solid fa-pen"></i> Rename</button>
                 </div>
@@ -541,43 +541,43 @@
                 <!-- Lucent Test Tile -->
                 <div class="tile-card" onclick="openSubTabs('LUCENT', 'Lucent Test Series')">
                     <div>
-                        <span class="badge" id="badge-LUCENT">0 Tiles</span>
+                        <span class="badge" id="badge-LUCENT">0 Sections</span>
                         <i class="fa-solid fa-brain card-icon"></i>
                         <h3 id="title-lucent">Lucent test</h3>
-                        <p>Standard static GK quiz practice based on Lucent chapters.</p>
+                        <p>Standard static GK quiz practice sections.</p>
                     </div>
                     <button class="btn btn-secondary admin-only" style="margin-top: 1rem; width: fit-content; display: none;" onclick="event.stopPropagation(); renameTab('title-lucent')"><i class="fa-solid fa-pen"></i> Rename</button>
                 </div>
             </div>
         </div>
 
-        <!-- LEVEL 2: SUB-TILES VIEW -->
+        <!-- LEVEL 2: SUBJECT / SUB-TILES VIEW -->
         <div id="sub-tabs-view" style="display: none;">
             <div class="section-header">
-                <h2 id="sub-tab-title"><i class="fa-solid fa-folder-open"></i> Test Series - Select Sub-Tile</h2>
+                <h2 id="sub-tab-title"><i class="fa-solid fa-folder-open"></i> Test Series - Select Section</h2>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn admin-only" id="json-modal-btn" style="display: none;" onclick="openCodeModal()"><i class="fa-solid fa-code"></i> Add Tile & Paste JSON</button>
+                    <button class="btn admin-only" id="json-modal-btn" style="display: none;" onclick="openCodeModal()"><i class="fa-solid fa-code"></i> Add Subject Tile & Paste JSON</button>
                     <button class="btn btn-secondary" onclick="showMainTabs()"><i class="fa-solid fa-arrow-left"></i> Back</button>
                 </div>
             </div>
 
             <div class="grid-container" id="sub-tiles-grid">
-                <!-- Sub-tiles load here dynamically -->
+                <!-- Subject tiles load here dynamically -->
             </div>
         </div>
 
         <!-- PASTE CODE MODAL FOR ADMIN -->
         <div id="code-modal" class="modal-overlay">
             <div class="modal-box" style="max-width: 600px;">
-                <h3><i class="fa-solid fa-code"></i> Add Sub-Tile & Paste JSON Questions</h3>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">Enter Sub-Tile name (e.g. History, Geography, Poltity) and paste JSON array.</p>
-                <label>Sub-Tile Name / Subject</label>
+                <h3><i class="fa-solid fa-code"></i> Add Subject Tile & Paste JSON Questions</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">Enter Subject Name (e.g. History, Geography, Polity) and paste JSON array.</p>
+                <label>Subject / Tile Name</label>
                 <input type="text" id="modal-tile-name-input" placeholder="e.g. History">
                 <label>JSON Code Array</label>
                 <textarea id="modal-code-input" placeholder='Paste JSON array here... e.g. [{"q":"1. ...", "opts":["(A)...","(B)..."], "ans":0, "exp":"..."}]'></textarea>
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="btn btn-secondary" onclick="closeCodeModal()">Cancel</button>
-                    <button class="btn" onclick="saveCodeTest()">Save Tile to Cloud</button>
+                    <button class="btn" onclick="saveCodeTest()">Save Subject Tile to Cloud</button>
                 </div>
             </div>
         </div>
@@ -638,6 +638,16 @@
             'GHATNA': {},
             'LUCENT': {}
         };
+
+        // Quiz session persistence states
+        let userAnswers = {};
+        let questionTimeSpent = {};
+        let currentQuestionStart = 0;
+        let testStartTime = 0;
+        let activeQuestionIndex = 0;
+        let timerInterval = null;
+        let activeTileKey = '';
+        let totalExamSeconds = 90 * 60;
 
         async function initPortal() {
             if (userRole !== 'GUEST') {
@@ -747,6 +757,7 @@
             sessionStorage.removeItem('bpsc_user_role');
             sessionStorage.removeItem('active_test_key');
             sessionStorage.removeItem('active_series_key');
+            sessionStorage.removeItem('exam_time_left');
             document.getElementById('user-role-badge').style.display = 'none';
             document.getElementById('logout-btn').style.display = 'none';
 
@@ -818,7 +829,7 @@
                 const count = Object.keys(testDatabase[seriesKey] || {}).length;
                 const badge = document.getElementById(`badge-${seriesKey}`);
                 if (badge) {
-                    badge.innerText = `${count} Tiles`;
+                    badge.innerText = `${count} Sections`;
                 }
             });
         }
@@ -831,7 +842,7 @@
                 testDatabase[activeSeriesKey] = {};
             }
 
-            document.getElementById('sub-tab-title').innerHTML = `<i class="fa-solid fa-folder-open"></i> ${activeSeriesName} - Select Tile`;
+            document.getElementById('sub-tab-title').innerHTML = `<i class="fa-solid fa-folder-open"></i> ${activeSeriesName} - Select Section`;
             document.getElementById('main-tabs-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'block';
             document.getElementById('quiz-view').style.display = 'none';
@@ -847,7 +858,7 @@
             const keys = Object.keys(currentSeriesDb).sort();
 
             if (keys.length === 0) {
-                subGrid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; padding: 1.5rem; background: var(--card-bg); border-radius: 12px; border: 1px dashed #475569;">No sub-tiles currently added in <strong>${activeSeriesName}</strong>.</p>`;
+                subGrid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; padding: 1.5rem; background: var(--card-bg); border-radius: 12px; border: 1px dashed #475569;">No subject tiles currently added in <strong>${activeSeriesName}</strong>.</p>`;
                 return;
             }
 
@@ -903,7 +914,7 @@
                 newCard.onclick = () => openSubTabs(seriesKey, title.trim());
                 newCard.innerHTML = `
                     <div>
-                        <span class="badge" id="badge-${seriesKey}">0 Tiles</span>
+                        <span class="badge" id="badge-${seriesKey}">0 Sections</span>
                         <i class="fa-solid fa-folder-plus card-icon"></i>
                         <h3 id="${cardId}">${title.trim()}</h3>
                         <p>Custom created test series folder.</p>
@@ -930,7 +941,7 @@
             const codeRaw = document.getElementById('modal-code-input').value;
 
             if (!tileName) {
-                alert("Please enter a Sub-Tile name (e.g. History, Geography).");
+                alert("Please enter a Subject Tile name (e.g. History, Geography).");
                 return;
             }
             if (!codeRaw || codeRaw.trim() === "") {
@@ -949,7 +960,7 @@
                 closeCodeModal();
                 document.getElementById('modal-tile-name-input').value = '';
                 document.getElementById('modal-code-input').value = '';
-                alert(`Successfully saved tile "${tileName}" with ${parsedArr.length} questions to cloud!`);
+                alert(`Successfully saved subject tile "${tileName}" with ${parsedArr.length} questions to cloud!`);
             } catch (e) {
                 alert("Invalid JSON code format.");
             }
@@ -969,15 +980,7 @@
             }
         }
 
-        // Quiz Engine Functions with Auto-Resume Persistence
-        let userAnswers = {};
-        let questionTimeSpent = {};
-        let currentQuestionStart = 0;
-        let testStartTime = 0;
-        let activeQuestionIndex = 0;
-        let timerInterval = null;
-        let activeTileKey = '';
-
+        // Quiz Engine Functions with Persistent Resume
         window.loadQuiz = function(tileKey, isResume = false) {
             activeTileKey = tileKey;
             const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][tileKey]) || [];
@@ -988,9 +991,12 @@
                 questions.forEach((_, idx) => {
                     questionTimeSpent[idx] = 0;
                 });
-                testStartTime = Date.now();
+                totalExamSeconds = 90 * 60;
                 sessionStorage.setItem('active_test_key', tileKey);
                 sessionStorage.setItem('active_series_key', activeSeriesKey);
+            } else {
+                const savedTime = sessionStorage.getItem('exam_time_left');
+                if (savedTime) totalExamSeconds = parseInt(savedTime);
             }
 
             document.getElementById('main-tabs-view').style.display = 'none';
@@ -1033,7 +1039,7 @@
 
             currentQuestionStart = Date.now();
             activeQuestionIndex = 0;
-            startTimer(90 * 60);
+            startTimer(totalExamSeconds);
         }
 
         window.trackQuestionTime = function(newIndex) {
@@ -1059,15 +1065,11 @@
             clearInterval(timerInterval);
             sessionStorage.removeItem('active_test_key');
             sessionStorage.removeItem('active_series_key');
+            sessionStorage.removeItem('exam_time_left');
             
             const now = Date.now();
             const finalElapsed = Math.round((now - currentQuestionStart) / 1000);
             questionTimeSpent[activeQuestionIndex] = (questionTimeSpent[activeQuestionIndex] || 0) + finalElapsed;
-
-            const totalSecondsSpent = Math.round((now - testStartTime) / 1000);
-            const totalMins = Math.floor(totalSecondsSpent / 60);
-            const totalSecs = totalSecondsSpent % 60;
-            const formattedTotalTime = `${totalMins}m ${totalSecs}s`;
 
             const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][activeTileKey]) || [];
             let score = 0;
@@ -1119,9 +1121,6 @@
                     <span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> Wrong: ${wrongCount}</span> | 
                     <span style="color: #94a3b8;"><i class="fa-solid fa-circle-minus"></i> Unattempted: ${unattemptedCount}</span>
                 </div>
-                <div style="margin-top: 0.5rem; font-size: 0.95rem; color: #fb923c;">
-                    <i class="fa-solid fa-stopwatch"></i> <strong>Total Time Taken:</strong> ${formattedTotalTime}
-                </div>
             `;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1134,6 +1133,7 @@
                 const mins = Math.floor(timeRemaining / 60);
                 const secs = timeRemaining % 60;
                 display.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                sessionStorage.setItem('exam_time_left', timeRemaining);
 
                 if (--timeRemaining < 0) {
                     clearInterval(timerInterval);
@@ -1147,6 +1147,7 @@
             clearInterval(timerInterval);
             sessionStorage.removeItem('active_test_key');
             sessionStorage.removeItem('active_series_key');
+            sessionStorage.removeItem('exam_time_left');
             document.getElementById('quiz-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'block';
         }
