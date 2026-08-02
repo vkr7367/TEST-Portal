@@ -582,9 +582,10 @@
             <div class="section-header">
                 <h2 id="sub-tab-title"><i class="fa-solid fa-folder-open"></i> Test Series - Select Section</h2>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-secondary admin-only" id="add-blank-tile-btn" style="display: none;" onclick="addNewSubTileManually()"><i class="fa-solid fa-folder-plus"></i> Add Blank Tile</button>
+                    <button class="btn btn-secondary admin-only" id="add-subfolder-btn" style="display: none;" onclick="addNewSubFolder()"><i class="fa-solid fa-folder-plus"></i> Add Folder</button>
+                    <button class="btn btn-secondary admin-only" id="add-blank-tile-btn" style="display: none;" onclick="addNewSubTileManually()"><i class="fa-solid fa-plus"></i> Add Blank Tile</button>
                     <button class="btn admin-only" id="json-modal-btn" style="display: none;" onclick="openCodeModal()"><i class="fa-solid fa-code"></i> Paste JSON / Code</button>
-                    <button class="btn btn-secondary" onclick="showMainTabs()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    <button class="btn btn-secondary" onclick="handleBackNavigation()"><i class="fa-solid fa-arrow-left"></i> Back</button>
                 </div>
             </div>
 
@@ -664,6 +665,7 @@
 
         let activeSeriesKey = '3SC'; 
         let activeSeriesName = '3SC Test Series';
+        let currentFolderStack = []; // Tracks nested folder path
         let testDatabase = {
             '3SC': {},
             'GHATNA': {},
@@ -866,7 +868,7 @@
                 const count = Object.keys(testDatabase[seriesKey] || {}).length;
                 const badge = document.getElementById(`badge-${seriesKey}`);
                 if (badge) {
-                    badge.innerText = `${count} Sections`;
+                    badge.innerText = `${count} Items`;
                 }
             });
         }
@@ -874,12 +876,13 @@
         window.openSubTabs = function(seriesKey, seriesName) {
             activeSeriesKey = seriesKey;
             activeSeriesName = seriesName || seriesKey;
+            currentFolderStack = []; // Reset stack to root of series
 
             if (!testDatabase[activeSeriesKey]) {
                 testDatabase[activeSeriesKey] = {};
             }
 
-            document.getElementById('sub-tab-title').innerHTML = `<i class="fa-solid fa-folder-open"></i> ${activeSeriesName} - Select Section`;
+            document.getElementById('sub-tab-title').innerHTML = `<i class="fa-solid fa-folder-open"></i> ${activeSeriesName}`;
             document.getElementById('main-tabs-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'block';
             document.getElementById('quiz-view').style.display = 'none';
@@ -887,33 +890,52 @@
             renderSubTabCards();
         }
 
+        function getCurrentFolderRef() {
+            let ref = testDatabase[activeSeriesKey];
+            for (let folder of currentFolderStack) {
+                if (!ref[folder]) ref[folder] = {};
+                ref = ref[folder];
+            }
+            return ref;
+        }
+
         function renderSubTabCards() {
             const subGrid = document.getElementById('sub-tiles-grid');
             subGrid.innerHTML = '';
 
-            const currentSeriesDb = testDatabase[activeSeriesKey] || {};
-            const keys = Object.keys(currentSeriesDb).sort();
+            const currentFolder = getCurrentFolderRef();
+            const keys = Object.keys(currentFolder).sort();
 
             if (keys.length === 0) {
-                subGrid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; padding: 1.5rem; background: var(--card-bg); border-radius: 12px; border: 1px dashed #475569;">No subject tiles currently added in <strong>${activeSeriesName}</strong>.</p>`;
+                subGrid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; padding: 1.5rem; background: var(--card-bg); border-radius: 12px; border: 1px dashed #475569;">This folder is currently empty. ${userRole === 'ADMIN' ? 'Use the buttons above to add a subfolder or paste JSON tests!' : ''}</p>`;
                 return;
             }
 
             keys.forEach(key => {
-                const count = currentSeriesDb[key] ? currentSeriesDb[key].length : 0;
+                const item = currentFolder[key];
+                const isFolder = (typeof item === 'object' && !Array.isArray(item));
+                const count = isFolder ? Object.keys(item).length : item.length;
+                
                 const newCard = document.createElement('div');
                 newCard.className = 'tile-card';
-                newCard.id = `card-${key}`;
-                newCard.onclick = () => loadQuiz(key, false);
                 
-                let deleteBtnHTML = (userRole === 'ADMIN') ? `<button class="btn-danger" style="margin-top: 1rem; width: fit-content;" onclick="event.stopPropagation(); deleteTestCard('${key}')"><i class="fa-solid fa-trash"></i> Delete Tile</button>` : '';
+                if (isFolder) {
+                    newCard.onclick = () => {
+                        currentFolderStack.push(key);
+                        renderSubTabCards();
+                    };
+                } else {
+                    newCard.onclick = () => loadQuiz(key, false);
+                }
+                
+                let deleteBtnHTML = (userRole === 'ADMIN') ? `<button class="btn-danger" style="margin-top: 1rem; width: fit-content;" onclick="event.stopPropagation(); deleteItem('${key}')"><i class="fa-solid fa-trash"></i> Delete</button>` : '';
 
                 newCard.innerHTML = `
                     <div>
-                        <span class="badge" style="background: var(--secondary-gradient);">${count} Questions</span>
-                        <i class="fa-solid fa-book-open card-icon"></i>
+                        <span class="badge" style="background: ${isFolder ? 'var(--primary-gradient)' : 'var(--secondary-gradient)'};">${isFolder ? `${count} Sub-items` : `${count} Questions`}</span>
+                        <i class="fa-solid ${isFolder ? 'fa-folder' : 'fa-book-open'} card-icon"></i>
                         <h3>${key}</h3>
-                        <p>${activeSeriesName} • Subject Section</p>
+                        <p>${isFolder ? 'Folder Category' : 'Test Tile'}</p>
                     </div>
                     ${deleteBtnHTML}
                 `;
@@ -921,7 +943,17 @@
             });
         }
 
+        window.handleBackNavigation = function() {
+            if (currentFolderStack.length > 0) {
+                currentFolderStack.pop();
+                renderSubTabCards();
+            } else {
+                showMainTabs();
+            }
+        }
+
         window.showMainTabs = function() {
+            currentFolderStack = [];
             document.getElementById('main-tabs-view').style.display = 'block';
             document.getElementById('sub-tabs-view').style.display = 'none';
             document.getElementById('quiz-view').style.display = 'none';
@@ -952,7 +984,7 @@
                 newCard.onclick = () => openSubTabs(seriesKey, title.trim());
                 newCard.innerHTML = `
                     <div>
-                        <span class="badge" id="badge-${seriesKey}">0 Sections</span>
+                        <span class="badge" id="badge-${seriesKey}">0 Items</span>
                         <i class="fa-solid fa-folder-plus card-icon"></i>
                         <h3 id="${cardId}">${title.trim()}</h3>
                         <p>Custom created test series folder.</p>
@@ -964,20 +996,34 @@
             }
         }
 
-        window.addNewSubTileManually = function() {
+        window.addNewSubFolder = function() {
             if (userRole !== 'ADMIN') return;
-            const tileName = prompt(`Enter new blank Subject Tile name for ${activeSeriesName} (e.g., History, Geography):`);
-            if (tileName && tileName.trim() !== "") {
-                const key = tileName.trim();
-                if (!testDatabase[activeSeriesKey]) {
-                    testDatabase[activeSeriesKey] = {};
-                }
-                if (!testDatabase[activeSeriesKey][key]) {
-                    testDatabase[activeSeriesKey][key] = [];
+            const folderName = prompt("Enter new folder name (e.g., History, Polity):");
+            if (folderName && folderName.trim() !== "") {
+                const currentFolder = getCurrentFolderRef();
+                const key = folderName.trim();
+                if (!currentFolder[key]) {
+                    currentFolder[key] = {};
                     savePortalData();
                     renderSubTabCards();
                 } else {
-                    alert("A tile with this name already exists!");
+                    alert("A folder or tile with this name already exists here!");
+                }
+            }
+        }
+
+        window.addNewSubTileManually = function() {
+            if (userRole !== 'ADMIN') return;
+            const tileName = prompt("Enter new test tile name (e.g., Chapter 1 Test):");
+            if (tileName && tileName.trim() !== "") {
+                const currentFolder = getCurrentFolderRef();
+                const key = tileName.trim();
+                if (!currentFolder[key]) {
+                    currentFolder[key] = [];
+                    savePortalData();
+                    renderSubTabCards();
+                } else {
+                    alert("A folder or tile with this name already exists here!");
                 }
             }
         }
@@ -997,7 +1043,7 @@
             const codeRaw = document.getElementById('modal-code-input').value;
 
             if (!tileName) {
-                alert("Please enter a Subject Tile name (e.g. History, Geography).");
+                alert("Please enter a Test Tile name.");
                 return;
             }
             if (!codeRaw || codeRaw.trim() === "") {
@@ -1007,31 +1053,32 @@
 
             try {
                 const parsedArr = JSON.parse(codeRaw.trim());
-                if (!testDatabase[activeSeriesKey]) {
-                    testDatabase[activeSeriesKey] = {};
-                }
-                testDatabase[activeSeriesKey][tileName] = parsedArr;
+                const currentFolder = getCurrentFolderRef();
+                currentFolder[tileName] = parsedArr;
                 savePortalData();
 
                 closeCodeModal();
                 document.getElementById('modal-tile-name-input').value = '';
                 document.getElementById('modal-code-input').value = '';
-                alert(`Successfully saved subject tile "${tileName}" with ${parsedArr.length} questions to cloud!`);
+                alert(`Successfully saved test tile "${tileName}" with ${parsedArr.length} questions to cloud!`);
+                renderSubTabCards();
             } catch (e) {
                 alert("Invalid JSON code format.");
             }
         }
 
-        window.deleteTestCard = function(tileKey) {
+        window.deleteItem = function(key) {
             if (userRole !== 'ADMIN') {
-                alert("Admin login required to delete tiles.");
+                alert("Admin login required to delete items.");
                 return;
             }
-            if (confirm(`Are you sure you want to delete tile "${tileKey}"?`)) {
-                if (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][tileKey]) {
-                    delete testDatabase[activeSeriesKey][tileKey];
+            if (confirm(`Are you sure you want to delete "${key}"?`)) {
+                const currentFolder = getCurrentFolderRef();
+                if (currentFolder[key]) {
+                    delete currentFolder[key];
                     savePortalData();
-                    alert("Tile deleted successfully from cloud!");
+                    renderSubTabCards();
+                    alert("Item deleted successfully from cloud!");
                 }
             }
         }
@@ -1039,7 +1086,8 @@
         // Quiz Engine Functions with Persistent Answers & Timer Resume
         window.loadQuiz = function(tileKey, isResume = false) {
             activeTileKey = tileKey;
-            const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][tileKey]) || [];
+            const currentFolder = getCurrentFolderRef();
+            const questions = currentFolder[tileKey] || [];
 
             if (!isResume) {
                 userAnswers = {};
@@ -1130,7 +1178,6 @@
             sessionStorage.removeItem('exam_time_left');
             sessionStorage.removeItem('saved_user_answers');
             
-            // Hide sticky footer after submitting
             document.getElementById('sticky-quiz-footer').style.display = 'none';
 
             const now = Date.now();
@@ -1142,7 +1189,8 @@
             const totalSecs = totalSecondsSpent % 60;
             const formattedTotalTime = `${totalMins}m ${totalSecs}s`;
 
-            const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][activeTileKey]) || [];
+            const currentFolder = getCurrentFolderRef();
+            const questions = currentFolder[activeTileKey] || [];
             let score = 0;
             let correctCount = 0;
             let wrongCount = 0;
