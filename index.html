@@ -79,7 +79,7 @@
         .container {
             max-width: 1200px;
             margin: 2rem auto;
-            padding: 0 1.5rem 6rem 1.5rem; /* extra bottom padding for floating bar */
+            padding: 0 1.5rem 6rem 1.5rem;
             width: 100%;
             flex-grow: 1;
         }
@@ -361,18 +361,6 @@
             position: relative;
         }
 
-        .timer-box {
-            background: #0f172a;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            color: #fb923c;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
         /* Floating Sticky Footer Bar during Test */
         .sticky-quiz-footer {
             position: fixed;
@@ -594,7 +582,8 @@
             <div class="section-header">
                 <h2 id="sub-tab-title"><i class="fa-solid fa-folder-open"></i> Test Series - Select Section</h2>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn admin-only" id="json-modal-btn" style="display: none;" onclick="openCodeModal()"><i class="fa-solid fa-code"></i> Add Subject Tile & Paste JSON</button>
+                    <button class="btn btn-secondary admin-only" id="add-blank-tile-btn" style="display: none;" onclick="addNewSubTileManually()"><i class="fa-solid fa-folder-plus"></i> Add Blank Tile</button>
+                    <button class="btn admin-only" id="json-modal-btn" style="display: none;" onclick="openCodeModal()"><i class="fa-solid fa-code"></i> Paste JSON / Code</button>
                     <button class="btn btn-secondary" onclick="showMainTabs()"><i class="fa-solid fa-arrow-left"></i> Back</button>
                 </div>
             </div>
@@ -607,15 +596,15 @@
         <!-- PASTE CODE MODAL FOR ADMIN -->
         <div id="code-modal" class="modal-overlay">
             <div class="modal-box" style="max-width: 600px;">
-                <h3><i class="fa-solid fa-code"></i> Add Subject Tile & Paste JSON Questions</h3>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">Enter Subject Name (e.g. History, Geography, Polity) and paste JSON array.</p>
+                <h3><i class="fa-solid fa-code"></i> Paste JSON Questions into Tile</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">Enter exact Subject/Tile name and paste JSON array.</p>
                 <label>Subject / Tile Name</label>
                 <input type="text" id="modal-tile-name-input" placeholder="e.g. History">
                 <label>JSON Code Array</label>
                 <textarea id="modal-code-input" placeholder='Paste JSON array here... e.g. [{"q":"1. ...", "opts":["(A)...","(B)..."], "ans":0, "exp":"..."}]'></textarea>
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="btn btn-secondary" onclick="closeCodeModal()">Cancel</button>
-                    <button class="btn" onclick="saveCodeTest()">Save Subject Tile to Cloud</button>
+                    <button class="btn" onclick="saveCodeTest()">Save Questions to Cloud</button>
                 </div>
             </div>
         </div>
@@ -975,6 +964,24 @@
             }
         }
 
+        window.addNewSubTileManually = function() {
+            if (userRole !== 'ADMIN') return;
+            const tileName = prompt(`Enter new blank Subject Tile name for ${activeSeriesName} (e.g., History, Geography):`);
+            if (tileName && tileName.trim() !== "") {
+                const key = tileName.trim();
+                if (!testDatabase[activeSeriesKey]) {
+                    testDatabase[activeSeriesKey] = {};
+                }
+                if (!testDatabase[activeSeriesKey][key]) {
+                    testDatabase[activeSeriesKey][key] = [];
+                    savePortalData();
+                    renderSubTabCards();
+                } else {
+                    alert("A tile with this name already exists!");
+                }
+            }
+        }
+
         window.openCodeModal = function() {
             if (userRole !== 'ADMIN') return;
             document.getElementById('code-modal').style.display = 'flex';
@@ -1041,12 +1048,14 @@
                     questionTimeSpent[idx] = 0;
                 });
                 totalExamSeconds = 90 * 60;
+                testStartTime = Date.now();
                 sessionStorage.setItem('active_test_key', tileKey);
                 sessionStorage.setItem('active_series_key', activeSeriesKey);
                 sessionStorage.setItem('saved_user_answers', JSON.stringify(userAnswers));
             } else {
                 const savedTime = sessionStorage.getItem('exam_time_left');
                 if (savedTime) totalExamSeconds = parseInt(savedTime);
+                testStartTime = Date.now() - ((90 * 60 - totalExamSeconds) * 1000);
             }
 
             document.getElementById('main-tabs-view').style.display = 'none';
@@ -1128,6 +1137,11 @@
             const finalElapsed = Math.round((now - currentQuestionStart) / 1000);
             questionTimeSpent[activeQuestionIndex] = (questionTimeSpent[activeQuestionIndex] || 0) + finalElapsed;
 
+            const totalSecondsSpent = Math.round((now - testStartTime) / 1000);
+            const totalMins = Math.floor(totalSecondsSpent / 60);
+            const totalSecs = totalSecondsSpent % 60;
+            const formattedTotalTime = `${totalMins}m ${totalSecs}s`;
+
             const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][activeTileKey]) || [];
             let score = 0;
             let correctCount = 0;
@@ -1180,6 +1194,9 @@
                     <span style="color: #10b981;"><i class="fa-solid fa-circle-check"></i> Correct: ${correctCount}</span> | 
                     <span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> Wrong: ${wrongCount}</span> | 
                     <span style="color: #f59e0b;"><i class="fa-solid fa-circle-minus"></i> Unattempted: ${unattemptedCount}</span>
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.95rem; color: #fb923c;">
+                    <i class="fa-solid fa-stopwatch"></i> <strong>Total Time Taken:</strong> ${formattedTotalTime}
                 </div>
             `;
             window.scrollTo({ top: 0, behavior: 'smooth' });
