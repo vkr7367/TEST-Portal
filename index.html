@@ -142,8 +142,10 @@
             padding: 30px;
             border-radius: 12px;
             width: 100%;
-            max-width: 500px;
+            max-width: 550px;
             border: 1px solid #334155;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .form-group {
@@ -188,18 +190,22 @@
     <!-- Add Test Modal -->
     <div id="addModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin-bottom: 20px;">Add New Test</h2>
+            <h2 style="margin-bottom: 20px;">Add New Test & Questions</h2>
             <div class="form-group">
                 <label>Test Title</label>
-                <input type="text" id="testTitle" placeholder="e.g., Modern History Mock Test 1">
+                <input type="text" id="testTitle" placeholder="e.g., Indian Polity Mock Test">
             </div>
             <div class="form-group">
                 <label>Test Date</label>
                 <input type="date" id="testDate">
             </div>
             <div class="form-group">
-                <label>Description / Details</label>
-                <textarea id="testDesc" rows="3" placeholder="Test syllabus or notes..."></textarea>
+                <label>Description / Syllabus</label>
+                <textarea id="testDesc" rows="2" placeholder="Brief details about the test..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Paste Test Questions JSON Code</label>
+                <textarea id="testJson" rows="5" placeholder='[{"question": "...", "options": ["A", "B", "C", "D"], "answer": "A"}]'></textarea>
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                 <button class="btn" style="background: #475569;" onclick="closeAddModal()">Cancel</button>
@@ -238,10 +244,21 @@
             const title = document.getElementById('testTitle').value.trim();
             const date = document.getElementById('testDate').value;
             const desc = document.getElementById('testDesc').value.trim();
+            const jsonInput = document.getElementById('testJson').value.trim();
 
             if (!title) {
                 alert('Please enter a test title');
                 return;
+            }
+
+            let parsedQuestions = [];
+            if (jsonInput) {
+                try {
+                    parsedQuestions = JSON.parse(jsonInput);
+                } catch (e) {
+                    alert('Invalid JSON Code! Please check your formatting.');
+                    return;
+                }
             }
 
             try {
@@ -249,16 +266,18 @@
                     title: title,
                     testDate: date || 'No Date',
                     description: desc,
+                    questions: parsedQuestions,
                     createdAt: serverTimestamp()
                 });
                 closeAddModal();
                 document.getElementById('testTitle').value = '';
                 document.getElementById('testDate').value = '';
                 document.getElementById('testDesc').value = '';
+                document.getElementById('testJson').value = '';
                 loadTests();
             } catch (e) {
                 console.error("Error adding document: ", e);
-                alert("Error saving test.");
+                alert("Error saving test to cloud.");
             }
         }
 
@@ -279,10 +298,12 @@
                     const test = doc.data();
                     const card = document.createElement('div');
                     card.className = 'test-card';
+                    const qCount = test.questions ? test.questions.length : 0;
                     card.innerHTML = `
                         <div class="test-title">${escapeHtml(test.title)}</div>
                         <div class="test-date"><i class="fa-regular fa-calendar"></i> ${escapeHtml(test.testDate)}</div>
                         <div class="test-meta">${escapeHtml(test.description || 'No description provided')}</div>
+                        <div style="font-size: 0.8rem; color: #10b981; font-weight: 600;"><i class="fa-solid fa-list-check"></i> ${qCount} Questions Loaded</div>
                     `;
                     grid.appendChild(card);
                 });
