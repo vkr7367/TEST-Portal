@@ -493,7 +493,7 @@
     <!-- Firebase SDKs & App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AizSyDJRPVw03gH0XULysTKxP_r1POFRDrVDBK",
@@ -524,18 +524,15 @@
             document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-cloud"></i> Cloud Synced';
         }
 
+        // Single-document fetch prevents partial data loading or random disappearing tests
         async function loadPortalDataFromCloud() {
             try {
-                const querySnapshot = await getDocs(collection(db, "bpsc_series"));
-                let loadedAny = false;
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    if (data && data.seriesKey && data.tests) {
-                        testDatabase[data.seriesKey] = data.tests;
-                        loadedAny = true;
-                    }
-                });
-                if (!loadedAny) {
+                const docRef = doc(db, "bpsc_portal_data", "main_database");
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists() && docSnap.data().database) {
+                    testDatabase = docSnap.data().database;
+                } else {
                     const stored = localStorage.getItem('bpsc_multi_series_db');
                     if (stored) { testDatabase = JSON.parse(stored); }
                 }
@@ -552,20 +549,17 @@
             }
         }
 
-        async function savePortalData(seriesKey) {
+        async function savePortalData() {
             localStorage.setItem('bpsc_multi_series_db', JSON.stringify(testDatabase));
             updateBadges();
 
-            if (seriesKey && testDatabase[seriesKey]) {
-                try {
-                    await setDoc(doc(db, "bpsc_series", seriesKey), {
-                        seriesKey: seriesKey,
-                        tests: testDatabase[seriesKey],
-                        updatedAt: serverTimestamp()
-                    });
-                } catch(e) {
-                    console.error("Error syncing to cloud Firestore: ", e);
-                }
+            try {
+                await setDoc(doc(db, "bpsc_portal_data", "main_database"), {
+                    database: testDatabase,
+                    updatedAt: serverTimestamp()
+                });
+            } catch(e) {
+                console.error("Error syncing to cloud Firestore: ", e);
             }
 
             if (document.getElementById('sub-tabs-view').style.display === 'block') {
@@ -593,17 +587,7 @@
                         const parsedData = JSON.parse(e.target.result);
                         if (parsedData && typeof parsedData === 'object') {
                             testDatabase = parsedData;
-                            localStorage.setItem('bpsc_multi_series_db', JSON.stringify(testDatabase));
-                            
-                            // Upload all restored series to Firebase cloud
-                            for (let sKey of Object.keys(testDatabase)) {
-                                await setDoc(doc(db, "bpsc_series", sKey), {
-                                    seriesKey: sKey,
-                                    tests: testDatabase[sKey],
-                                    updatedAt: serverTimestamp()
-                                });
-                            }
-
+                            await savePortalData();
                             updateBadges();
                             if (document.getElementById('sub-tabs-view').style.display === 'block') {
                                 renderSubTabCards();
@@ -713,7 +697,7 @@
                     <button class="btn btn-secondary" style="margin-top: 1rem; width: fit-content;" onclick="event.stopPropagation(); renameTab('${cardId}')"><i class="fa-solid fa-pen"></i> Rename</button>
                 `;
                 grid.appendChild(newCard);
-                savePortalData(seriesKey);
+                savePortalData();
             }
         }
 
@@ -726,7 +710,7 @@
                 }
                 if (!testDatabase[activeSeriesKey][key]) {
                     testDatabase[activeSeriesKey][key] = [];
-                    savePortalData(activeSeriesKey);
+                    savePortalData();
                 }
             }
         }
@@ -760,7 +744,7 @@
                     testDatabase[activeSeriesKey] = {};
                 }
                 testDatabase[activeSeriesKey][key] = parsedArr;
-                savePortalData(activeSeriesKey);
+                savePortalData();
 
                 closeCodeModal();
                 document.getElementById('modal-date-input').value = '';
@@ -776,7 +760,7 @@
             if (inputPass === ADMIN_PASSWORD) {
                 if (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][dateKey]) {
                     delete testDatabase[activeSeriesKey][dateKey];
-                    savePortalData(activeSeriesKey);
+                    savePortalData();
                     alert("Test deleted successfully from cloud!");
                 }
             } else if (inputPass !== null) {
@@ -951,7 +935,7 @@
             }, 1000);
         }
 
-        window.exitQuiz = function() {
+    window.exitQuiz = function() {
             clearInterval(timerInterval);
             document.getElementById('quiz-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'block';
