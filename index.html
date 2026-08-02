@@ -171,36 +171,6 @@
             gap: 10px;
         }
 
-        .filter-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-tab {
-            background: var(--card-bg);
-            border: 1px solid #475569;
-            color: var(--text-muted);
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .filter-tab:hover {
-            background: #334155;
-            color: var(--text-main);
-        }
-
-        .filter-tab.active {
-            background: var(--primary-gradient);
-            color: white;
-            border-color: transparent;
-        }
-
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -269,18 +239,6 @@
             align-self: flex-start;
             margin-bottom: 0.75rem;
             color: #fff;
-        }
-
-        .folder-badge {
-            background: rgba(6, 182, 212, 0.15);
-            color: #06b6d4;
-            padding: 0.2rem 0.5rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border: 1px solid rgba(6, 182, 212, 0.3);
-            display: inline-block;
-            margin-bottom: 0.5rem;
         }
 
         .btn {
@@ -373,7 +331,7 @@
             margin-bottom: 1rem;
         }
 
-        .modal-box input, .modal-box select {
+        .modal-box input {
             width: 100%;
             padding: 0.8rem;
             background: #0f172a;
@@ -558,92 +516,68 @@
                     <button class="btn admin-only" id="add-series-btn" style="display: none;" onclick="addNewTab()"><i class="fa-solid fa-plus"></i> Add New Series</button>
                 </div>
             </div>
-            
-            <!-- Folder Filter Tabs for Main Series (Visible to everyone for easy browsing) -->
-            <div class="filter-tabs" id="main-filter-tabs">
-                <div class="filter-tab active" onclick="filterMainSeries('ALL')">All Folders</div>
-                <div class="filter-tab" onclick="filterMainSeries('BPSC')">BPSC Prep</div>
-                <div class="filter-tab" onclick="filterMainSeries('GENERAL')">General GK</div>
-            </div>
-
             <div class="grid-container" id="main-tiles-grid">
                 <!-- 3SC Test Series Tile -->
-                <div class="tile-card" data-folder="BPSC" onclick="openSubTabs('3SC', '3SC Test Series')">
+                <div class="tile-card" onclick="openSubTabs('3SC', '3SC Test Series')">
                     <div>
-                        <span class="folder-badge"><i class="fa-solid fa-folder"></i> BPSC</span>
-                        <span class="badge" id="badge-3SC">0 Dates</span>
+                        <span class="badge" id="badge-3SC">0 Tiles</span>
                         <i class="fa-solid fa-clipboard-check card-icon"></i>
                         <h3>3SC Test series</h3>
-                        <p>Daily target tests organized date-wise with answers, explanations, timer & per-question tracking.</p>
+                        <p>Daily target tests organized efficiently with answers, timer & auto-recovery.</p>
                     </div>
                 </div>
 
                 <!-- Ghatna Chakra Test Tile -->
-                <div class="tile-card" data-folder="BPSC" onclick="openSubTabs('GHATNA', 'Ghatna Chakra Test Series')">
+                <div class="tile-card" onclick="openSubTabs('GHATNA', 'Ghatna Chakra Test Series')">
                     <div>
-                        <span class="folder-badge"><i class="fa-solid fa-folder"></i> BPSC</span>
-                        <span class="badge" id="badge-GHATNA">0 Dates</span>
+                        <span class="badge" id="badge-GHATNA">0 Tiles</span>
                         <i class="fa-solid fa-book-bookmark card-icon"></i>
                         <h3 id="title-ghatna">Ghatna chakra test</h3>
-                        <p>Subject-wise question banks and previous years' solved target papers.</p>
+                        <p>Subject-wise question banks like History, Geography, Polity etc.</p>
                     </div>
                     <button class="btn btn-secondary admin-only" style="margin-top: 1rem; width: fit-content; display: none;" onclick="event.stopPropagation(); renameTab('title-ghatna')"><i class="fa-solid fa-pen"></i> Rename</button>
                 </div>
 
                 <!-- Lucent Test Tile -->
-                <div class="tile-card" data-folder="GENERAL" onclick="openSubTabs('LUCENT', 'Lucent Test Series')">
+                <div class="tile-card" onclick="openSubTabs('LUCENT', 'Lucent Test Series')">
                     <div>
-                        <span class="folder-badge"><i class="fa-solid fa-folder"></i> General</span>
-                        <span class="badge" id="badge-LUCENT">0 Dates</span>
+                        <span class="badge" id="badge-LUCENT">0 Tiles</span>
                         <i class="fa-solid fa-brain card-icon"></i>
                         <h3 id="title-lucent">Lucent test</h3>
-                        <p>Standard static GK quiz practice based on Lucent handbook chapters.</p>
+                        <p>Standard static GK quiz practice based on Lucent chapters.</p>
                     </div>
                     <button class="btn btn-secondary admin-only" style="margin-top: 1rem; width: fit-content; display: none;" onclick="event.stopPropagation(); renameTab('title-lucent')"><i class="fa-solid fa-pen"></i> Rename</button>
                 </div>
             </div>
         </div>
 
-        <!-- LEVEL 2: DATE-WISE SUB-TABS VIEW -->
+        <!-- LEVEL 2: SUB-TILES VIEW -->
         <div id="sub-tabs-view" style="display: none;">
             <div class="section-header">
-                <h2 id="sub-tab-title"><i class="fa-solid fa-calendar-days"></i> Test Series - Select Date</h2>
+                <h2 id="sub-tab-title"><i class="fa-solid fa-folder-open"></i> Test Series - Select Sub-Tile</h2>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn admin-only" id="json-modal-btn" style="display: none;" onclick="openCodeModal()"><i class="fa-solid fa-code"></i> Paste JSON / Code</button>
-                    <button class="btn btn-secondary admin-only" id="manual-date-btn" style="display: none;" onclick="addNewSubTabManually()"><i class="fa-solid fa-plus"></i> Add Blank Date</button>
+                    <button class="btn admin-only" id="json-modal-btn" style="display: none;" onclick="openCodeModal()"><i class="fa-solid fa-code"></i> Add Tile & Paste JSON</button>
                     <button class="btn btn-secondary" onclick="showMainTabs()"><i class="fa-solid fa-arrow-left"></i> Back</button>
                 </div>
             </div>
 
             <div class="grid-container" id="sub-tiles-grid">
-                <!-- Test cards load here dynamically -->
+                <!-- Sub-tiles load here dynamically -->
             </div>
         </div>
 
-        <!-- PASTE CODE MODAL WITH ADMIN FOLDER TAG SELECTOR -->
+        <!-- PASTE CODE MODAL FOR ADMIN -->
         <div id="code-modal" class="modal-overlay">
-            <div class="modal-box">
-                <h3><i class="fa-solid fa-code"></i> Paste Test Questions JSON Code</h3>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">Enter Test Date, Folder category tag, and paste JSON array.</p>
-                
-                <label>Test Date</label>
-                <input type="text" id="modal-date-input" placeholder="e.g. 31/07/2026">
-                
-                <label>Folder / Subject Tag Type</label>
-                <select id="modal-tag-input">
-                    <option value="Polity">Polity</option>
-                    <option value="History">History</option>
-                    <option value="Geography">Geography</option>
-                    <option value="Current Affairs">Current Affairs</option>
-                    <option value="General Science">General Science</option>
-                </select>
-
+            <div class="modal-box" style="max-width: 600px;">
+                <h3><i class="fa-solid fa-code"></i> Add Sub-Tile & Paste JSON Questions</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">Enter Sub-Tile name (e.g. History, Geography, Poltity) and paste JSON array.</p>
+                <label>Sub-Tile Name / Subject</label>
+                <input type="text" id="modal-tile-name-input" placeholder="e.g. History">
                 <label>JSON Code Array</label>
                 <textarea id="modal-code-input" placeholder='Paste JSON array here... e.g. [{"q":"1. ...", "opts":["(A)...","(B)..."], "ans":0, "exp":"..."}]'></textarea>
-                
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="btn btn-secondary" onclick="closeCodeModal()">Cancel</button>
-                    <button class="btn" onclick="saveCodeTest()">Save Test to Cloud</button>
+                    <button class="btn" onclick="saveCodeTest()">Save Tile to Cloud</button>
                 </div>
             </div>
         </div>
@@ -726,6 +660,15 @@
                 }
                 applyRolePermissions();
             }
+
+            // Auto-resume active test if page refreshed during exam
+            const activeTestKey = sessionStorage.getItem('active_test_key');
+            const activeSeries = sessionStorage.getItem('active_series_key');
+            if (activeTestKey && activeSeries && userRole !== 'GUEST') {
+                await loadPortalDataFromCloud();
+                activeSeriesKey = activeSeries;
+                loadQuiz(activeTestKey, true);
+            }
         }
 
         async function loadPortalDataFromCloud() {
@@ -767,22 +710,6 @@
             }
         }
 
-        // --- FOLDER / TAB FILTERING ---
-        window.filterMainSeries = function(folderName) {
-            const tabs = document.querySelectorAll('#main-filter-tabs .filter-tab');
-            tabs.forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-
-            const cards = document.querySelectorAll('#main-tiles-grid .tile-card');
-            cards.forEach(card => {
-                if (folderName === 'ALL' || card.getAttribute('data-folder') === folderName) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-
         // --- LOGIN & LOADING SEQUENCE ---
         window.verifyLandingLogin = async function() {
             const inputId = document.getElementById('landing-id-input').value.trim();
@@ -818,6 +745,8 @@
         window.logoutPortal = function() {
             userRole = 'GUEST';
             sessionStorage.removeItem('bpsc_user_role');
+            sessionStorage.removeItem('active_test_key');
+            sessionStorage.removeItem('active_series_key');
             document.getElementById('user-role-badge').style.display = 'none';
             document.getElementById('logout-btn').style.display = 'none';
 
@@ -889,7 +818,7 @@
                 const count = Object.keys(testDatabase[seriesKey] || {}).length;
                 const badge = document.getElementById(`badge-${seriesKey}`);
                 if (badge) {
-                    badge.innerText = `${count} Dates`;
+                    badge.innerText = `${count} Tiles`;
                 }
             });
         }
@@ -902,7 +831,7 @@
                 testDatabase[activeSeriesKey] = {};
             }
 
-            document.getElementById('sub-tab-title').innerHTML = `<i class="fa-solid fa-calendar-days"></i> ${activeSeriesName} - Select Test Date`;
+            document.getElementById('sub-tab-title').innerHTML = `<i class="fa-solid fa-folder-open"></i> ${activeSeriesName} - Select Tile`;
             document.getElementById('main-tabs-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'block';
             document.getElementById('quiz-view').style.display = 'none';
@@ -915,30 +844,28 @@
             subGrid.innerHTML = '';
 
             const currentSeriesDb = testDatabase[activeSeriesKey] || {};
-            const keys = Object.keys(currentSeriesDb).sort().reverse();
+            const keys = Object.keys(currentSeriesDb).sort();
 
             if (keys.length === 0) {
-                subGrid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; padding: 1.5rem; background: var(--card-bg); border-radius: 12px; border: 1px dashed #475569;">No test dates currently saved in <strong>${activeSeriesName}</strong>.</p>`;
+                subGrid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; padding: 1.5rem; background: var(--card-bg); border-radius: 12px; border: 1px dashed #475569;">No sub-tiles currently added in <strong>${activeSeriesName}</strong>.</p>`;
                 return;
             }
 
             keys.forEach(key => {
-                const dateStr = key.replace(/_/g, '/');
                 const count = currentSeriesDb[key] ? currentSeriesDb[key].length : 0;
                 const newCard = document.createElement('div');
                 newCard.className = 'tile-card';
                 newCard.id = `card-${key}`;
-                newCard.onclick = () => loadQuiz(key);
+                newCard.onclick = () => loadQuiz(key, false);
                 
-                let deleteBtnHTML = (userRole === 'ADMIN') ? `<button class="btn-danger" style="margin-top: 1rem; width: fit-content;" onclick="event.stopPropagation(); deleteTestCard('${key}')"><i class="fa-solid fa-trash"></i> Delete Test</button>` : '';
+                let deleteBtnHTML = (userRole === 'ADMIN') ? `<button class="btn-danger" style="margin-top: 1rem; width: fit-content;" onclick="event.stopPropagation(); deleteTestCard('${key}')"><i class="fa-solid fa-trash"></i> Delete Tile</button>` : '';
 
                 newCard.innerHTML = `
                     <div>
-                        <span class="folder-badge"><i class="fa-solid fa-tag"></i> Active Test</span>
                         <span class="badge" style="background: var(--secondary-gradient);">${count} Questions</span>
-                        <i class="fa-solid fa-file-pen card-icon"></i>
-                        <h3>DATE: ${dateStr}</h3>
-                        <p>${activeSeriesName} • 90 Mins • Neg: -1/3</p>
+                        <i class="fa-solid fa-book-open card-icon"></i>
+                        <h3>${key}</h3>
+                        <p>${activeSeriesName} • Subject Section</p>
                     </div>
                     ${deleteBtnHTML}
                 `;
@@ -964,7 +891,7 @@
 
         window.addNewTab = function() {
             if (userRole !== 'ADMIN') return;
-            const title = prompt("Enter name for new test series:");
+            const title = prompt("Enter name for new test series folder (e.g. NCERT Test Series):");
             if (title && title.trim() !== "") {
                 const seriesKey = 'CUSTOM_' + Date.now();
                 testDatabase[seriesKey] = {};
@@ -973,35 +900,18 @@
                 const cardId = 'title-' + seriesKey;
                 const newCard = document.createElement('div');
                 newCard.className = 'tile-card';
-                newCard.setAttribute('data-folder', 'BPSC');
                 newCard.onclick = () => openSubTabs(seriesKey, title.trim());
                 newCard.innerHTML = `
                     <div>
-                        <span class="folder-badge"><i class="fa-solid fa-folder"></i> BPSC</span>
-                        <span class="badge" id="badge-${seriesKey}">0 Dates</span>
+                        <span class="badge" id="badge-${seriesKey}">0 Tiles</span>
                         <i class="fa-solid fa-folder-plus card-icon"></i>
                         <h3 id="${cardId}">${title.trim()}</h3>
-                        <p>Custom created test series tab.</p>
+                        <p>Custom created test series folder.</p>
                     </div>
                     <button class="btn btn-secondary admin-only" style="margin-top: 1rem; width: fit-content;" onclick="event.stopPropagation(); renameTab('${cardId}')"><i class="fa-solid fa-pen"></i> Rename</button>
                 `;
                 grid.appendChild(newCard);
                 savePortalData();
-            }
-        }
-
-        window.addNewSubTabManually = function() {
-            if (userRole !== 'ADMIN') return;
-            const dateStr = prompt(`Enter new Test Date for ${activeSeriesName} (e.g., 31/07/2026):`);
-            if (dateStr && dateStr.trim() !== "") {
-                const key = dateStr.trim().replace(/\//g, '_');
-                if (!testDatabase[activeSeriesKey]) {
-                    testDatabase[activeSeriesKey] = {};
-                }
-                if (!testDatabase[activeSeriesKey][key]) {
-                    testDatabase[activeSeriesKey][key] = [];
-                    savePortalData();
-                }
             }
         }
 
@@ -1016,12 +926,11 @@
 
         window.saveCodeTest = function() {
             if (userRole !== 'ADMIN') return;
-            const dateStr = document.getElementById('modal-date-input').value;
-            const tagType = document.getElementById('modal-tag-input').value;
+            const tileName = document.getElementById('modal-tile-name-input').value.trim();
             const codeRaw = document.getElementById('modal-code-input').value;
 
-            if (!dateStr || dateStr.trim() === "") {
-                alert("Please enter a valid Test Date.");
+            if (!tileName) {
+                alert("Please enter a Sub-Tile name (e.g. History, Geography).");
                 return;
             }
             if (!codeRaw || codeRaw.trim() === "") {
@@ -1029,66 +938,72 @@
                 return;
             }
 
-            const key = `${dateStr.trim().replace(/\//g, '_')}_${tagType}`;
-
             try {
                 const parsedArr = JSON.parse(codeRaw.trim());
                 if (!testDatabase[activeSeriesKey]) {
                     testDatabase[activeSeriesKey] = {};
                 }
-                testDatabase[activeSeriesKey][key] = parsedArr;
+                testDatabase[activeSeriesKey][tileName] = parsedArr;
                 savePortalData();
 
                 closeCodeModal();
-                document.getElementById('modal-date-input').value = '';
+                document.getElementById('modal-tile-name-input').value = '';
                 document.getElementById('modal-code-input').value = '';
-                alert(`Successfully saved ${tagType} test with ${parsedArr.length} questions to cloud for ${dateStr}!`);
+                alert(`Successfully saved tile "${tileName}" with ${parsedArr.length} questions to cloud!`);
             } catch (e) {
                 alert("Invalid JSON code format.");
             }
         }
 
-        window.deleteTestCard = function(dateKey) {
+        window.deleteTestCard = function(tileKey) {
             if (userRole !== 'ADMIN') {
-                alert("Admin login required to delete tests.");
+                alert("Admin login required to delete tiles.");
                 return;
             }
-            if (confirm("Are you sure you want to delete this test?")) {
-                if (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][dateKey]) {
-                    delete testDatabase[activeSeriesKey][dateKey];
+            if (confirm(`Are you sure you want to delete tile "${tileKey}"?`)) {
+                if (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][tileKey]) {
+                    delete testDatabase[activeSeriesKey][tileKey];
                     savePortalData();
-                    alert("Test deleted successfully from cloud!");
+                    alert("Tile deleted successfully from cloud!");
                 }
             }
         }
 
-        // Quiz Engine Functions
+        // Quiz Engine Functions with Auto-Resume Persistence
         let userAnswers = {};
         let questionTimeSpent = {};
         let currentQuestionStart = 0;
         let testStartTime = 0;
         let activeQuestionIndex = 0;
         let timerInterval = null;
+        let activeTileKey = '';
 
-        window.loadQuiz = function(dateKey) {
-            const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][dateKey]) || [];
+        window.loadQuiz = function(tileKey, isResume = false) {
+            activeTileKey = tileKey;
+            const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][tileKey]) || [];
 
-            userAnswers = {};
-            questionTimeSpent = {};
-            questions.forEach((_, idx) => {
-                questionTimeSpent[idx] = 0;
-            });
+            if (!isResume) {
+                userAnswers = {};
+                questionTimeSpent = {};
+                questions.forEach((_, idx) => {
+                    questionTimeSpent[idx] = 0;
+                });
+                testStartTime = Date.now();
+                sessionStorage.setItem('active_test_key', tileKey);
+                sessionStorage.setItem('active_series_key', activeSeriesKey);
+            }
 
+            document.getElementById('main-tabs-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'none';
             document.getElementById('quiz-view').style.display = 'block';
             document.getElementById('score-panel').style.display = 'none';
-            document.getElementById('quiz-heading').innerText = `${activeSeriesName} - Date: ${dateKey.replace(/_/g, '/')}`;
+            document.getElementById('quiz-heading').innerText = `${activeSeriesName} - ${tileKey}`;
 
             const wrapper = document.getElementById('questions-wrapper');
             wrapper.innerHTML = '';
 
             if (questions.length === 0) {
-                wrapper.innerHTML = '<p style="color: var(--text-muted); padding: 1rem;">No questions installed for this date yet.</p>';
+                wrapper.innerHTML = '<p style="color: var(--text-muted); padding: 1rem;">No questions installed for this tile yet.</p>';
                 return;
             }
 
@@ -1099,8 +1014,9 @@
 
                 let optsHTML = '';
                 qObj.opts.forEach((optStr, oIdx) => {
+                    const isSelected = (userAnswers[qIdx] === oIdx) ? 'selected' : '';
                     optsHTML += `
-                        <button type="button" class="option-btn" id="opt-${qIdx}-${oIdx}" onclick="selectOption(${qIdx}, ${oIdx})">
+                        <button type="button" class="option-btn ${isSelected}" id="opt-${qIdx}-${oIdx}" onclick="selectOption(${qIdx}, ${oIdx})">
                             ${optStr}
                         </button>
                     `;
@@ -1115,10 +1031,8 @@
                 wrapper.appendChild(qCard);
             });
 
-            testStartTime = Date.now();
             currentQuestionStart = Date.now();
             activeQuestionIndex = 0;
-
             startTimer(90 * 60);
         }
 
@@ -1143,6 +1057,8 @@
 
         window.evaluateQuiz = function() {
             clearInterval(timerInterval);
+            sessionStorage.removeItem('active_test_key');
+            sessionStorage.removeItem('active_series_key');
             
             const now = Date.now();
             const finalElapsed = Math.round((now - currentQuestionStart) / 1000);
@@ -1153,9 +1069,7 @@
             const totalSecs = totalSecondsSpent % 60;
             const formattedTotalTime = `${totalMins}m ${totalSecs}s`;
 
-            const headingText = document.getElementById('quiz-heading').innerText;
-            const dateKey = headingText.split('- Date: ')[1].replace(/\//g, '_');
-            const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][dateKey]) || [];
+            const questions = (testDatabase[activeSeriesKey] && testDatabase[activeSeriesKey][activeTileKey]) || [];
             let score = 0;
             let correctCount = 0;
             let wrongCount = 0;
@@ -1231,6 +1145,8 @@
 
         window.exitQuiz = function() {
             clearInterval(timerInterval);
+            sessionStorage.removeItem('active_test_key');
+            sessionStorage.removeItem('active_series_key');
             document.getElementById('quiz-view').style.display = 'none';
             document.getElementById('sub-tabs-view').style.display = 'block';
         }
