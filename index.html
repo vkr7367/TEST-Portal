@@ -102,7 +102,7 @@
 
         /* Mode Selection Landing Modal */
         #mode-selection-view {
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
             min-height: 80vh;
@@ -437,7 +437,7 @@
             padding: 2rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             border: 1px solid var(--border-color);
-            display: none;
+            display: block;
             position: relative;
         }
 
@@ -537,7 +537,7 @@
             padding: 1.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             border: 1px solid var(--border-color);
-            display: none;
+            display: block;
         }
 
         .navigator-header {
@@ -807,7 +807,7 @@
             
             <!-- Left Main Question Card Pane -->
             <div>
-                <div class="quiz-container" id="quiz-view" style="display: block;">
+                <div class="quiz-container" id="quiz-view">
                     
                     <!-- Score Summary Panel inside Quiz Pane -->
                     <div id="score-panel" class="score-panel">
@@ -1320,10 +1320,8 @@
                 btn.className = 'option-btn';
                 btn.id = `opt-${qIdx}-${oIdx}`;
                 
-                // Check selection styling
                 if (userAnswers[qIdx] === oIdx) btn.classList.add('selected');
 
-                // If test is submitted or in practice mode and answered
                 if (isTestSubmitted) {
                     btn.disabled = true;
                     if (oIdx === qObj.ans) {
@@ -1344,7 +1342,6 @@
                 optsWrapper.appendChild(btn);
             });
 
-            // Explanation box handling
             const expBox = document.getElementById('q-explanation-box');
             if (isTestSubmitted || (selectedTestMode === 'practice' && userAnswers[qIdx] !== undefined)) {
                 expBox.innerText = qObj.exp || "No explanation provided.";
@@ -1364,7 +1361,7 @@
         };
 
         window.selectOptionInExam = function(qIdx, oIdx) {
-            if (isTestSubmitted) return; // Prevent selection after submission
+            if (isTestSubmitted) return;
             
             userAnswers[qIdx] = oIdx;
             sessionStorage.setItem('saved_user_answers', JSON.stringify(userAnswers));
@@ -1374,7 +1371,6 @@
             for (let btn of buttons) btn.classList.remove('selected');
             document.getElementById(`opt-${qIdx}-${oIdx}`).classList.add('selected');
 
-            // In Practice Mode, instantly highlight and show explanation
             if (selectedTestMode === 'practice') {
                 const qObj = currentQuizQuestions[qIdx];
                 qObj.opts.forEach((_, optIdx) => {
@@ -1483,7 +1479,6 @@
                 </div>
             `;
             
-            // Re-render current question so that all solutions and colors display correctly for review
             renderQuestionCard(currentQuestionIndex);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
